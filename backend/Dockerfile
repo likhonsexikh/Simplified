@@ -11,14 +11,10 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the content of the local src directory to the working directory
-COPY app.py .
+COPY src/ ./src
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
-# Define environment variable
-ENV FLASK_APP app.py
-ENV FLASK_RUN_HOST 0.0.0.0
-
 # Run the command to start the server
-CMD ["flask", "run"]
+CMD ["python", "src/main.py"]
