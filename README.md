@@ -1,4 +1,4 @@
-Simplified general-purpose AI Agent system that supports running various tools and operations in a sandbox environment.
+Simplified AI that builds with you general-purpose AI Agent system that supports running various tools and operations in a sandbox environment. 
 
 # Alpine VM Automated Installer with Docker & Vibely
 
