@@ -2,7 +2,7 @@ Simplified general-purpose AI Agent system that supports running various tools a
 
 # Alpine VM Automated Installer with Docker & Vibely
 
-![Alpine Banner](https://raw.githubusercontent.com/user/repo/main/banner.png) <!-- Optional image -->
+Rub Alpine.sh for setup full? 
 
 ## Description
 
