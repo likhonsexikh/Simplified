@@ -1,0 +1,34 @@
+#!/bin/bash
+# Script for building and publishing Docker images.
+
+set -e
+
+# Check for required environment variables
+if [ -z "$IMAGE_REGISTRY" ]; then
+    echo "Error: IMAGE_REGISTRY environment variable is not set."
+    echo "Usage: export IMAGE_REGISTRY=your-registry-url"
+    exit 1
+fi
+
+# The main docker-compose file
+COMPOSE_FILE="docker-compose.yml"
+
+# Command can be 'build' or 'push'
+COMMAND=$1
+
+case "$COMMAND" in
+    build)
+        echo "Building images..."
+        docker-compose -f "$COMPOSE_FILE" build
+        echo "Images built successfully."
+        ;;
+    push)
+        echo "Pushing images to $IMAGE_REGISTRY..."
+        docker-compose -f "$COMPOSE_FILE" push
+        echo "Images pushed successfully."
+        ;;
+    *)
+        echo "Usage: ./run [build|push]"
+        exit 1
+        ;;
+esac

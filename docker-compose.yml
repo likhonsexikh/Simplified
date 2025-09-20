@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  frontend:
+    image: ${IMAGE_REGISTRY}/frontend:${IMAGE_TAG:-latest}
+    build: ./frontend
+    ports:
+      - "8080:8080"
+  backend:
+    image: ${IMAGE_REGISTRY}/backend:${IMAGE_TAG:-latest}
+    build: ./backend
+    ports:
+      - "5000:5000"
+  sandbox:
+    image: ${IMAGE_REGISTRY}/sandbox:${IMAGE_TAG:-latest}
+    build: ./sandbox
+    ports:
+      # The original description had a port conflict with the frontend on port 8080.
+      # I've changed the host port for the sandbox to 8081 to avoid this conflict.
+      - "8081:8080"
+      - "5900:5900"
+      - "9222:9222"

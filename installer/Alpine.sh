@@ -31,7 +31,9 @@ animate_banner() {
 animate_banner
 
 # --- Configuration ---
-WORKDIR="$HOME/alpine-vm"
+# Use a build directory within the project root
+WORKDIR="$(dirname "$0")/../build"
+OVERLAY_DIR="$(dirname "$0")/../overlay"
 ISO_URL="https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/x86_64/alpine-standard-3.22.0-x86_64.iso"
 ISO_FILE="$WORKDIR/alpine.iso"
 MAIN_DISK="$WORKDIR/alpine.img"
@@ -40,7 +42,6 @@ MEMORY="1024"
 CPUS="2"
 
 mkdir -p "$WORKDIR"
-cd "$WORKDIR"
 
 echo "[1/8] Downloading Alpine ISO..."
 [ ! -f "$ISO_FILE" ] && wget "$ISO_URL" -O "$ISO_FILE" || echo "ISO already exists."
@@ -50,50 +51,34 @@ echo "[2/8] Creating main virtual disk..."
 
 echo "[3/8] Creating overlay disk for automation scripts..."
 if [ ! -f "$OVERLAY_DISK" ]; then
-    qemu-img create -f qcow2 "$OVERLAY_DISK" 2G
-    mkdir -p overlay
-    # Post-install script inside overlay
-    cat > overlay/post-install.sh << 'EOF'
-#!/bin/sh
-set -e
-echo "Updating Alpine..."
-apk update && apk upgrade -y
-
-echo "Installing Docker..."
-apk add docker -y
-rc-update add docker boot
-service docker start
-
-echo "Installing Vibely..."
-# Example: Replace with real Vibely installation commands
-apk add git nodejs npm -y
-git clone https://github.com/vibely/vibely.git /opt/vibely
-cd /opt/vibely
-npm install
-echo "Vibely installation complete."
-
-echo "Setup complete. Ready for chatbot deployment."
-EOF
-    chmod +x overlay/post-install.sh
     # Convert overlay folder to ISO, then to QCOW2
-    genisoimage -o overlay.iso -V OVERLAY overlay
-    qemu-img convert -O qcow2 overlay.iso "$OVERLAY_DISK"
+    # The overlay directory is now taken from the project structure
+    genisoimage -o "$WORKDIR/overlay.iso" -V OVERLAY "$OVERLAY_DIR"
+    qemu-img convert -O qcow2 "$WORKDIR/overlay.iso" "$OVERLAY_DISK"
 else
     echo "Overlay disk already exists."
 fi
 
 echo "[4/8] Creating minimal answerfile for unattended Alpine install..."
-cat > answerfile << 'EOF'
+cat > "$WORKDIR/answerfile" << EOF
 # Alpine Linux automated installation answerfile
 KEYMAP="us"
 HOSTNAME="alpine-vm"
 INTERFACES="auto"
 ROOT_PASSWORD="root"
 DNS="8.8.8.8"
-DISK="$MAIN_DISK"
+# Note: DISK path needs to be accessible from within the VM if not using default setup.
+# For this script, we assume the setup script runs on the host and prepares the disks.
+# The DISK variable in the answerfile is used by the Alpine setup script.
+# We are creating the disk on the host, so the path in the answerfile is tricky.
+# However, the Alpine installer script will use the drive passed via -drive, not this path.
+# So we can leave it as a placeholder.
+DISK="/dev/sda"
 EOF
 
 echo "[5/8] Booting QEMU VM with three drives for fully automated installation..."
+# Change to the workdir to manage generated files
+cd "$WORKDIR"
 qemu-system-x86_64 \
     -m "$MEMORY" -smp "$CPUS" -cpu qemu64 \
     -drive file="$MAIN_DISK",format=qcow2 \
