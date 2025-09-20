@@ -1,1 +1,5 @@
 Flask
+Flask-Cors
+browser-use
+playwright
+google-generativeai
